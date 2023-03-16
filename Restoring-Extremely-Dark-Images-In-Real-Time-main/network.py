@@ -5,6 +5,11 @@ import torch.nn as nn
 ################### ICNR initialization for pixelshuffle        
 def ICNR(tensor, upscale_factor=2, negative_slope=1, fan_type='fan_in'):
     
+    # Int rounds down to next integer (1.9 -> 1)
+    # tensor.shape[0] is an int size of the first dimension
+    # list(tensor.shape[1:] is a list with the dimension of the tensor except for the first D
+    # new_shape is a list with the size of each dimension of the tensor, with the first dimension adjusted by the upscale_factor
+
     new_shape = [int(tensor.shape[0] / (upscale_factor ** 2))] + list(tensor.shape[1:])
     subkernel = torch.zeros(new_shape)
     nn.init.kaiming_normal_(subkernel, a=negative_slope, mode=fan_type, nonlinearity='leaky_relu')
