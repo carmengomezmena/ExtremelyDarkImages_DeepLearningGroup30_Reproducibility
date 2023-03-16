@@ -8,11 +8,12 @@ import glob
 import imageio
 
 
-def define_weights(num):
-    weights = np.float32((np.logspace(0,num,127, endpoint=True, base=10.0)))
-    weights = weights/np.max(weights)
-    weights = np.flipud(weights).copy()    
-    return weights
+def define_weights(num):                    # define initial weights
+    weights = np.float32((np.logspace(0,num,127, endpoint=True, base=10.0))) # why is it 127 instead of 128 = 2^7?
+                                            # logspace returns list of len 127 with numbers between 10^0=1 and 10^num.
+    weights = weights/np.max(weights)       # divide by 10^num which makes every entry betwoon 0 and 1
+    weights = np.flipud(weights).copy()     # This function reverses/flips the order of the list (so starting at 1 and slowly going down to 0)
+    return weights                          # logspace list from 1 to 10^(-num)
 
 def get_na(bins,weights,img_loww,amp=1.0):
     H,W = img_loww.shape
