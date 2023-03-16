@@ -7,7 +7,6 @@ import rawpy
 import glob
 import imageio
 
-
 def define_weights(num):                    # define initial weights
     weights = np.float32((np.logspace(0,num,127, endpoint=True, base=10.0))) # why is it 127 instead of 128 = 2^7?
                                             # logspace returns list of len 127 with numbers between 10^0=1 and 10^num.
