@@ -72,30 +72,34 @@ def part_init(train_files):
     
     
 ################ DATASET CLASS
-class load_data(Dataset):
+class load_data(Dataset):  #creates class for loading data
     """Loads the Data."""
     
-    def __init__(self, train_files):    
+    def __init__(self, train_files):
+        # class initiation by calling 'part_init' function and assigning the outcome (train_list) to self.train_list
         print('\n...... Loading all files to CPU RAM\n')
         self.train_list = part_init(train_files)        
         print('\nFiles loaded to CPU RAM......\n')
         
-    def __len__(self):
+    def __len__(self): #function to get length of training list
         return len(self.train_list)
 
-    def __getitem__(self, idx):    
+    def __getitem__(self, idx):  #function to get a certain item (at index idx) from the training list
         img_low = self.train_list[idx]
-        return torch.from_numpy(img_low).float().unsqueeze(0) 
+        return torch.from_numpy(img_low).float().unsqueeze(0) #item is a float and 'unsqueezed'
 
-def run_test(model, dataloader_test, save_images):    
-    with torch.no_grad():
-        model.eval()
+def run_test(model, dataloader_test, save_images):
+    # Function: Creates and saves 3 prediction images from each dark data image inputted
+    #inputs: model, dataloader_test, save_images
+    #output: /
+    with torch.no_grad(): #disable gradient calculation in pytorch (used when backward() not used, so less calculations)
+        model.eval() #evaluate model
         for image_num, low in enumerate(dataloader_test):
-            low = low.to(next(model.parameters()).device)            
-            for amp in [1.0,5.0,8.0]:
-                pred = model(amp*low)
-                pred = (np.clip(pred[0].detach().cpu().numpy().transpose(1,2,0),0,1)*255).astype(np.uint8)
-                imageio.imwrite(os.path.join(save_images,'img_num_{}_m_{}.jpg'.format(image_num,amp)), pred)
+            low = low.to(next(model.parameters()).device) #save model parameters in 'low'
+            for amp in [1.0,5.0,8.0]: #three amplification factors -> three predictions per image
+                pred = model(amp*low) #prediction = run model for amplification*parameter
+                pred = (np.clip(pred[0].detach().cpu().numpy().transpose(1,2,0),0,1)*255).astype(np.uint8) #modify prediction
+                imageio.imwrite(os.path.join(save_images,'img_num_{}_m_{}.jpg'.format(image_num,amp)), pred) #save prediction
     return
 
         
