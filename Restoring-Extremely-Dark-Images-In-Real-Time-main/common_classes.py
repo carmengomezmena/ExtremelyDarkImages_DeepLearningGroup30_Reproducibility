@@ -13,7 +13,7 @@ def define_weights(num):                    # define initial weights
     weights = weights/np.max(weights)       # divide by 10^num which makes every entry betwoon 0 and 1
     weights = np.flipud(weights).copy()     # This function reverses/flips the order of the list (so starting at 1 and slowly going down to 0)
     return weights                          # logspace list from 1 to 10^(-num)
-
+    #normalised logspace between 0 and given number in inverse order?
 def get_na(bins,weights,img_loww,amp=1.0):
     H,W = img_loww.shape
     arr = img_loww*1
@@ -37,35 +37,38 @@ def get_na(bins,weights,img_loww,amp=1.0):
 
 
 def part_init(train_files):
+    #Function: Create list of amplified images from raw imput images
+    #Input: Training files/Raw input files
+    #Output: list of training amplified images
 
-    bins = np.float32((np.logspace(0,8,128, endpoint=True, base=2.0)-1))/255.0
-    weights5 = define_weights(5)
-    train_list = []
+    bins = np.float32((np.logspace(0,8,128, endpoint=True, base=2.0)-1))/255.0 #creates bins
+    weights5 = define_weights(5) #normalised logspace between 0 and 5 in inverse order? -> why 5?
+    train_list = [] #empty list to be filled
     
     for i in range(len(train_files)):
         
-        raw = rawpy.imread(train_files[i])
-        img = raw.raw_image_visible.astype(np.float32).copy()
-        raw.close()
+        raw = rawpy.imread(train_files[i]) #read raw file
+        img = raw.raw_image_visible.astype(np.float32).copy() #make img from raw file
+        raw.close() #close raw file (we have img now)
         
-        h,w = img.shape
-        if h%32!=0:
+        h,w = img.shape #define height and width of file
+        if h%32!=0: #if height not correct dimentions, reshape
             print('Image dimensions should be multiple of 32. Correcting the 1st dimension.')
             h = (h//32)*32
             img = img[:h,:]
         
-        if w%32!=0:
+        if w%32!=0: #if width not correct dimentions, reshape
             print('Image dimensions should be multiple of 32. Correcting the 2nd dimension.')
             w = (w//32)*32
             img = img[:,:w]        
+
+        img_loww = (np.maximum(img - 512, 0)/ (16383 - 512))    #img_loww = maximum between (img-512) and 0, divided by (16383 - 512)
         
-        img_loww = (np.maximum(img - 512,0)/ (16383 - 512))       
+        na5 = get_na(bins,weights5,img_loww)  #apply get_na with the defined bins, weights and image -> get 'na' factor
         
-        na5 = get_na(bins,weights5,img_loww)   
-        
-        img_loww = img_loww*na5
+        img_loww = img_loww*na5 #multiply image by na factor
             
-        train_list.append(img_loww)
+        train_list.append(img_loww) #amplified image append to list
 
         print('Image No.: {}, Amplification_m=1: {}'.format(i+1,na5))
     return train_list
