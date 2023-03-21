@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.pyplot as plt
 def define_weights(num):                    # define initial weights
     # weights = np.float32((np.logspace(0,num,127, endpoint=True, base=10.0))) # why is it 127 instead of 128 = 2^7?
-    weights = np.float32((np.logspace(0, num, 9, endpoint=True, base=10.0)))  # why is it 127 instead of 128 = 2^7?
+    weights = np.float32((np.logspace(0, num, 127, endpoint=True, base=10.0)))  # why is it 127 instead of 128 = 2^7?
                                             # logspace returns list of len 127 with numbers between 10^0=1 and 10^num.
     weights = weights/np.max(weights)       # divide by 10^num which makes every entry between 0 and 1
     weights = np.flipud(weights).copy()     # This function reverses/flips the order of the list (so starting at 1 and slowly going down to 0)
@@ -19,7 +19,7 @@ def define_weights(num):                    # define initial weights
 
     #normalised logspace between 1 (10^0) and given number (10^-num)
 
-def get_na(bins,weights,img_loww,amp=1.0):
+def get_na(bins, weights, img_loww, amp=1.0):
     #Function: Define amplification factor of image based on weighted averages of pixels intensity
     #input: bins (normalised log space base 2 (0-1)), weights (normalised log space base 10 (0-10^-num) and img_loww (2D array resized/normalised/bias corrected raw image)
     #output: Numerical Amplification factor for the image
@@ -61,23 +61,13 @@ def part_init(train_files):
     #Output: list of training amplified images
 
     # 128 bins, the first bin = 0 -> bins used to quantify intensity range
-    #bins = np.float32((np.logspace(0,8,128, endpoint=True, base=2.0)-1))/255.0
-    bins = np.float32((np.logspace(0, 8, 10, endpoint=True, base=2.0) - 1)) / 255.0
+    bins = np.float32((np.logspace(0, 8, 128, endpoint=True, base=2.0) - 1)) / 255.0
     #creates bins: normalised logspace base 2 -> 2^8 = 256 so 256-1/255 = 1 (so logspace between 0-1)
     #128 points define 127 bins
     # Equation 6 in Paper - Normalization is -> bk = 2**(k*8/n) / 2**8 (mathiness)
 
     weights5 = define_weights(5) #normalised logspace between 0 and 5 in inverse order? -> why 5?
     train_list = [] #empty list to be filled
-
-    plt.figure()
-    # plt.xscale("log")
-    plt.title('Bins & Weights')
-    print('bins: ', bins)
-    for b in bins:
-            plt.axvline(x=b, color = 'red', ls = '--')
-    plt.scatter(np.arange(1,10), weights5, color = 'green')
-
     for i in range(len(train_files)):
         
         raw = rawpy.imread(train_files[i]) #read raw file, create 'raw' class
@@ -128,6 +118,25 @@ def part_init(train_files):
     plt.legend()
     return train_list
     
+def plotbins(numbins: int):     
+    """ 
+    numbins = number of bins that you want to show. 
+    Uses weights logspace from 1 to 10^-5 """
+    bins = np.float32((np.logspace(0, 8, numbins+1, endpoint=True, base=2.0) - 1)) / 255.0
+    weights = np.float32((np.logspace(0, 5, numbins, endpoint=True, base=10.0)))  
+    weights = weights/np.max(weights)
+    weights = np.flipud(weights).copy()
+    plt.figure()
+    plt.title('Bins & Weights')
+    for b in bins:
+            plt.axvline(x=b, color = 'red', ls = '--')
+    x = []
+    for i in range(len(bins)-1):
+        x.append((bins[i+1]+bins[i])/2)
+    plt.scatter(x, weights, color = 'green', label = 'weights')
+    plt.legend()
+    plt.show()
+plotbins(3)
     
 ################ DATASET CLASS
 class load_data(Dataset):  #creates class for loading data
