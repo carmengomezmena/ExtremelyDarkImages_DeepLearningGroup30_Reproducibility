@@ -6,9 +6,11 @@ from torch.utils.data import Dataset
 import rawpy
 import glob
 import imageio
+import matplotlib.pyplot as plt
 
 def define_weights(num):                    # define initial weights
-    weights = np.float32((np.logspace(0,num,127, endpoint=True, base=10.0))) # why is it 127 instead of 128 = 2^7?
+    # weights = np.float32((np.logspace(0,num,127, endpoint=True, base=10.0))) # why is it 127 instead of 128 = 2^7?
+    weights = np.float32((np.logspace(0, num, 9, endpoint=True, base=10.0)))  # why is it 127 instead of 128 = 2^7?
                                             # logspace returns list of len 127 with numbers between 10^0=1 and 10^num.
     weights = weights/np.max(weights)       # divide by 10^num which makes every entry between 0 and 1
     weights = np.flipud(weights).copy()     # This function reverses/flips the order of the list (so starting at 1 and slowly going down to 0)
@@ -46,14 +48,23 @@ def part_init(train_files):
     #Output: list of training amplified images
 
     # 128 bins, the first bin = 0 -> bins used to quantify intensity range
-    bins = np.float32((np.logspace(0,8,128, endpoint=True, base=2.0)-1))/255.0
+    #bins = np.float32((np.logspace(0,8,128, endpoint=True, base=2.0)-1))/255.0
+    bins = np.float32((np.logspace(0, 8, 10, endpoint=True, base=2.0) - 1)) / 255.0
     #creates bins: normalised logspace base 2 -> 2^8 = 256 so 256-1/255 = 1 (so logspace between 0-1)
     #128 points define 127 bins
     # Equation 6 in Paper - Normalization is -> bk = 2**(k*8/n) / 2**8 (mathiness)
 
     weights5 = define_weights(5) #normalised logspace between 0 and 5 in inverse order? -> why 5?
     train_list = [] #empty list to be filled
-    
+
+    plt.figure()
+    # plt.xscale("log")
+    plt.title('Bins & Weights')
+    print('bins: ', bins)
+    for b in bins:
+            plt.axvline(x=b, color = 'red', ls = '--')
+    plt.scatter(np.arange(1,10), weights5, color = 'green')
+
     for i in range(len(train_files)):
         
         raw = rawpy.imread(train_files[i]) #read raw file, create 'raw' class
@@ -94,12 +105,14 @@ def part_init(train_files):
         # print('Img_loww is: ', img_loww)
 
         na5 = get_na(bins,weights5,img_loww)  #apply get_na with the defined bins, weights and image -> get 'numerical amplification' factor
-        
+        # label_na = str('NA for pic: '+ str(i))
+        # plt.axhline(na5, color = 'blue', label = label_na)
         img_loww = img_loww*na5 #multiply image by na factor (every pixel)
         # print('after amplification: ', img_loww)
         train_list.append(img_loww) #amplified image append to list
 
         print('Image No.: {}, Amplification_m=1: {}'.format(i+1,na5)) #m=1 is hardcoded into get_na function
+    plt.legend()
     return train_list
     
     
