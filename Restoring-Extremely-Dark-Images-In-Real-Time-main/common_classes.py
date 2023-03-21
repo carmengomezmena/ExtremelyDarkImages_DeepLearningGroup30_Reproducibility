@@ -6,7 +6,7 @@ from torch.utils.data import Dataset
 import rawpy
 import glob
 import imageio
-
+import matplotlib.pyplot as plt
 def define_weights(num):                    # define initial weights
     weights = np.float32((np.logspace(0,num,127, endpoint=True, base=10.0))) # why is it 127 instead of 128 = 2^7?
                                             # logspace returns list of len 127 with numbers between 10^0=1 and 10^num.
@@ -22,7 +22,7 @@ def get_na(bins,weights,img_loww,amp=1.0):
     #output: Numerical Amplification factor for the image
     H,W = img_loww.shape #this is not used?
     arr = img_loww*1 #this is making a copy of img_loww, why not img_loww.copy()?
-    selection_dict = {weights[0]: (bins[0]<=arr) & (arr<bins[1])}
+    selection_dict = {weights[0]: (bins[0]<=arr) & (arr<bins[1])} # if the pixel value (arr) is between the first bin value and the second bin value, the weight = weight[0] = 1
     for ii in range(1,len(weights)):
         selection_dict[weights[ii]] = (bins[ii]<=arr) & (arr<bins[ii+1])
     mask = np.select(condlist=selection_dict.values(), choicelist=selection_dict.keys()) # Select: Return an array drawn from elements in choicelist, depending on conditions.
@@ -39,6 +39,18 @@ def get_na(bins,weights,img_loww,amp=1.0):
     selection_dict.clear()
     print('na1: ', na1)
     return na1
+
+
+""" Example:
+weights = [5., 4., 3., 2., 1., 0.]
+bins = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+arr = np.array([0.15, 0.33, 0.45, 0.01, 0.03])
+
+selection_dict = {weights[0]: (bins[0]<=arr) & (arr<bins[1])} # if the pixel value (arr) is between the first bin value and the second bin value, the weight = weight[0] = 1
+for ii in range(1, len(weights)):
+    selection_dict[weights[ii]] = (bins[ii]<=arr) & (arr<bins[ii+1])
+print(selection_dict)
+ """
 
 def part_init(train_files):
     #Function: Create list of amplified images from raw imput images
