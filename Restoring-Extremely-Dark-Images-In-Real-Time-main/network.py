@@ -4,6 +4,8 @@ import torch.nn as nn
 
 ################### ICNR initialization for pixelshuffle        
 def ICNR(tensor, upscale_factor=2, negative_slope=1, fan_type='fan_in'):
+    # ICNR is an image segmentation method to separate an image according to objects location
+    # Returns a kernel with kaiming_normal distributed values of the size of the input tensor
     
     # Int rounds down to next integer (1.9 -> 1)
     # tensor.shape[0] is an int size of the first dimension
@@ -11,17 +13,28 @@ def ICNR(tensor, upscale_factor=2, negative_slope=1, fan_type='fan_in'):
     # new_shape is a list with the size of each dimension of the tensor, with the first dimension adjusted by the upscale_factor
     new_shape = [int(tensor.shape[0] / (upscale_factor ** 2))] + list(tensor.shape[1:])
     subkernel = torch.zeros(new_shape)
+    
+    # kaiming_normal: function named after Kaiming He.
+    # Fills the input tensor (subkernek) with a normal distribution N(0, std^2)
+    # std = (gain / sqrt(fan/mode))
+    # 'fan_in' preserves the magnitude of the weights in the fwd pass (and not in the backward pass?)
     nn.init.kaiming_normal_(subkernel, a=negative_slope, mode=fan_type, nonlinearity='leaky_relu')
     subkernel = subkernel.transpose(0, 1)
-
+    
+    # contiguous needs to be called to allocate memory of the transpose of a tensor the same way it would if the tensor was created in this shape
+    # view returns a new tensor with the same value as the input
     subkernel = subkernel.contiguous().view(subkernel.shape[0],
                                             subkernel.shape[1], -1)
-
+    
+    # Copies the kernel again, and scales it by the square of the upscale_factor
     kernel = subkernel.repeat(1, 1, upscale_factor ** 2)
 
+    # Allocated new memory to kernel shaped like the initial tensor inputed
+    # I don't know why they split the tensor dimension because they don't modify them at all
     transposed_shape = [tensor.shape[1]] + [tensor.shape[0]] + list(tensor.shape[2:])
     kernel = kernel.contiguous().view(transposed_shape)
 
+    # Transpose the kernel
     kernel = kernel.transpose(0, 1)
 
     return kernel
