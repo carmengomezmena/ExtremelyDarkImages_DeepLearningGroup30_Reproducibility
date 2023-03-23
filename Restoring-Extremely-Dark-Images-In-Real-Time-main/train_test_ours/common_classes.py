@@ -87,7 +87,7 @@ def part_init(gt_files,train_files,num_print,filename,gt_amp=False):
         # load GT amplifications if required and save in ta
         
         H,W = img_loww.shape    
-        a = np.float32(np.float64(H*W*0.01)/np.sum(img_loww,dtype=np.float64))
+        ta = np.float32(np.float64(H*W*0.01)/np.sum(img_loww,dtype=np.float64))
         
         if gt_amp:
             img_loww = (img_loww*ta)
