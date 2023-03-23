@@ -32,7 +32,8 @@ def get_na(bins, weights, img_loww, amp=1.0):
    
     mask_sum1 = np.sum(mask,dtype=np.float64)
     
-    na1 = np.float32(np.float64(mask_sum1*0.01*amp)/np.sum(img_loww*mask,dtype=np.float64))
+    na1 = np.float32(np.float64(mask_sum1*0.01*amp)/np.sum(img_loww*mask,dtype=np.float64)) # AMP = m *sum(wij)/sum(xij*wij)
+    # why 0.01?
 
     if na1>300.0: #bound na <=300
         na1 = np.float32(300.0)
@@ -118,7 +119,7 @@ def part_init(train_files):
     plt.legend()
     return train_list
     
-def plotbins(numbins: int):     
+def plotbins(numbins: int):     ## This is ours
     """ 
     numbins = number of bins that you want to show. 
     Uses weights logspace from 1 to 10^-5 """
@@ -129,14 +130,14 @@ def plotbins(numbins: int):
     plt.figure()
     plt.title('Bins & Weights')
     for b in bins:
-            plt.axvline(x=b, color = 'red', ls = '--')
+            plt.axvline(x=b, color = 'red', ls = '--', zorder=1)
     x = []
     for i in range(len(bins)-1):
         x.append((bins[i+1]+bins[i])/2)
-    plt.scatter(x, weights, color = 'green', label = 'weights')
+    plt.scatter(x, weights, color = 'green', label = 'weights', zorder=2)
     plt.legend()
     plt.show()
-plotbins(3)
+plotbins(127)
     
 ################ DATASET CLASS
 class load_data(Dataset):  #creates class for loading data
