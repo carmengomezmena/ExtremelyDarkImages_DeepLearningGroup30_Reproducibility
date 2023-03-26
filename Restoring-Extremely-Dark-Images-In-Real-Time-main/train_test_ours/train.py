@@ -14,7 +14,9 @@ opt['atWhichReduce'] = [500000] # Reduce learning rate at these iterations.
 opt['batch_size'] = 8
 opt['atWhichSave'] = [2,100002,150002,200002,250002,300002,350002,400002,450002,500002,550000, 600000,650002,700002,750000,800000,850002,900002,950000,1000000] # testing will be done at these iterations and corresponding model weights will be saved.
 opt['iterations'] = 1000005 # The model will run for these many iterations.
-dry_run = False # If you wish to first test the entire workflow, for couple of iterations, make this TRUE
+dry_run = True # If you wish to first test the entire workflow, for couple of iterations, make this TRUE
+dry_run_trainpictures = 5
+dry_run_testpictures  = 2
 dry_run_iterations = 100 # If dry run flag is set TRUE the code will terminate after these many iterations
 
 metric_average_file = 'metric_average.txt' # Average metrics will be saved here. Please note these are only for supervison. We used MATLAB for final PSNR and SSIM evaluation.
@@ -39,7 +41,7 @@ from network import Net
 from vainF_ssim import MS_SSIM
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   
-os.environ["CUDA_VISIBLE_DEVICES"]="1" # You would probably like to change it to 0 or some other integer depending on GPU avalability.
+os.environ["CUDA_VISIBLE_DEVICES"]="0" # You would probably like to change it to 0 or some other integer depending on GPU avalability.
 
 shutil.rmtree(metric_average_file, ignore_errors = True)
 shutil.rmtree(test_amplification_file, ignore_errors = True)
@@ -53,22 +55,29 @@ os.makedirs(save_weights)
 os.makedirs(save_images)
 os.makedirs(save_csv_files)
 
-train_files = glob.glob('/path_to_SID_short_training_and_validation')
-gt_files =glob.glob('/path_to_SID_long_training_and_validation')
+train_files = glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/short/*.ARW')
+# print(train_files)
+gt_files =glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/long/*.ARW')
 # If you have less CPU RAM you would like to use fewer images for training.
 if dry_run:
-    train_files = train_files[:2]
+    train_files = train_files[:dry_run_trainpictures]
+    gt_files = gt_files[:dry_run_trainpictures]
+    print('train_files', train_files)
+    print('gt_files', gt_files)
     opt['iterations'] = dry_run_iterations
 
     
-dataloader_train = DataLoader(load_data(train_files,gt_files,train_amplification_file,20,gt_amp=True,training=True), batch_size=opt['batch_size'], shuffle=True, num_workers=0, pin_memory=True)
+dataloader_train = DataLoader(load_data(train_files, gt_files, train_amplification_file, 2 , gt_amp=True,training=True), batch_size=opt['batch_size'], shuffle=True, num_workers=0, pin_memory=True)
 # gt_amp=True means use GT information for amplification. Make it false for automatic estimation.
 # 20 here means that after every 20 images have been loaded to CPU RAM print statistics.
 
-test_files = glob.glob('/path_to_SID_short_testing') 
-gt_files +=glob.glob('/path_to_SID_long_testing')
+test_files = glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/short/*.ARW') 
+gt_files +=glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/long/*.ARW')
 if dry_run:
-    test_files = test_files[:2]
+    test_files = test_files[:dry_run_testpictures]
+    print(test_files)
+    gt_files = gt_files[:dry_run_testpictures]
+    print(gt_files)   
     
 dataloader_test = DataLoader(load_data(test_files,gt_files,test_amplification_file,2,gt_amp=True,training=False), batch_size=1, shuffle=False, num_workers=0, pin_memory=True)
 
