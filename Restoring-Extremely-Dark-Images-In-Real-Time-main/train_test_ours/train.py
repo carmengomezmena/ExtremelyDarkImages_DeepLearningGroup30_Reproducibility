@@ -15,8 +15,8 @@ opt['batch_size'] = 8
 opt['atWhichSave'] = [2,100002,150002,200002,250002,300002,350002,400002,450002,500002,550000, 600000,650002,700002,750000,800000,850002,900002,950000,1000000] # testing will be done at these iterations and corresponding model weights will be saved.
 opt['iterations'] = 1000005 # The model will run for these many iterations.
 dry_run = True # If you wish to first test the entire workflow, for couple of iterations, make this TRUE
-dry_run_trainpictures = 5
-dry_run_testpictures  = 2
+dry_run_trainpictures = 4
+dry_run_testpictures  = 4
 dry_run_iterations = 100 # If dry run flag is set TRUE the code will terminate after these many iterations
 
 metric_average_file = 'metric_average.txt' # Average metrics will be saved here. Please note these are only for supervison. We used MATLAB for final PSNR and SSIM evaluation.
@@ -35,10 +35,13 @@ import torch
 from torch.utils.data import DataLoader
 import torch.optim as optim
 import glob
+import time
 
 from common_classes import load_data, run_test
 from network import Net
 from vainF_ssim import MS_SSIM
+
+start_time = time.time()
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   
 os.environ["CUDA_VISIBLE_DEVICES"]="0" # You would probably like to change it to 0 or some other integer depending on GPU avalability.
@@ -149,5 +152,5 @@ while iter_num<opt['iterations']:
                 print('Changing LR from {} to {}'.format(old_lr,group['lr']))
 
 np.savetxt(os.path.join(save_csv_files,'loss_curve.csv'),[p for p in zip(loss_iter_list,loss_list,iter_LR)],delimiter=',',fmt='%s')   
-                
-        
+
+print("--- runtime = %s seconds ---" % (time.time() - start_time))
