@@ -108,7 +108,7 @@ print("TRAIN/VALIDATION FILES: ", train_files)
 print("TEST FILES: ", test_files)
 print("GT FILES: ", gt_files)
 
-dataloader_test = DataLoader(load_data(test_files,gt_files,test_amplification_file,2,gt_amp=True,training=False), batch_size=1, shuffle=False, num_workers=0, pin_memory=True)
+dataloader_test = DataLoader(load_data(test_files,gt_files[dry_run_trainpictures:],test_amplification_file,2,gt_amp=True,training=False), batch_size=1, shuffle=False, num_workers=0, pin_memory=True)
 
 for i,img in enumerate(dataloader_train):    
     print('Input image size : {}, GT image size : {}'.format(img[0].size(), img[1].size()))    
