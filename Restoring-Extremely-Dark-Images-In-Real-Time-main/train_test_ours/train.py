@@ -15,9 +15,9 @@ opt['batch_size'] = 8
 opt['atWhichSave'] = [2,100002,150002,200002,250002,300002,350002,400002,450002,500002,550000, 600000,650002,700002,750000,800000,850002,900002,950000,1000000] # testing will be done at these iterations and corresponding model weights will be saved.
 opt['iterations'] = 1000005 # The model will run for these many iterations.
 dry_run = True # If you wish to first test the entire workflow, for couple of iterations, make this TRUE
-dry_run_trainpictures = 4
-dry_run_testpictures  = 4
-dry_run_iterations = 100 # If dry run flag is set TRUE the code will terminate after these many iterations
+dry_run_trainpictures = 2
+dry_run_testpictures  = 2
+dry_run_iterations = 25 # If dry run flag is set TRUE the code will terminate after these many iterations
 
 metric_average_file = 'metric_average.txt' # Average metrics will be saved here. Please note these are only for supervison. We used MATLAB for final PSNR and SSIM evaluation.
 test_amplification_file = 'test_amplification.txt' # Intermediate details for the test images, such as estimated amplification will be saved here.
@@ -58,30 +58,56 @@ os.makedirs(save_weights)
 os.makedirs(save_images)
 os.makedirs(save_csv_files)
 
-train_files = glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/short/*.ARW')
+# train_files = glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/short/*.ARW')
+# # print(train_files)
+# gt_files =glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/long/*.ARW')
+#gt_files =glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/long/*.ARW')
+
+
+train_files = glob.glob('C:/Users/cgome/Documents/TU Delft/1ºMsc Masters C&O (C&S) 2022-23/Q3 Deep Learning/Sony/Sony/short/0*_00_0.1s.ARW')
+train_files += glob.glob('C:/Users/cgome/Documents/TU Delft/1ºMsc Masters C&O (C&S) 2022-23/Q3 Deep Learning/Sony/Sony/short/2*_00_0.1s.ARW')
 # print(train_files)
-gt_files =glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/long/*.ARW')
+# 0 -training
+# 1 - test
+# 2 - validation
+gt_files = []
+for x in train_files:
+    #print(x)
+    gt_files += glob.glob('C:/Users/cgome/Documents/TU Delft/1ºMsc Masters C&O (C&S) 2022-23/Q3 Deep Learning/Sony/Sony/long/*'+x[-17:-12]+'*.ARW')
+
+# gt_files =glob.glob('C:/Users/cgome/Documents/TU Delft/1ºMsc Masters C&O (C&S) 2022-23/Q3 Deep Learning/Sony/Sony/long/0*_00_0.1s.ARW')
+# gt_files += glob.glob('C:/Users/cgome/Documents/TU Delft/1ºMsc Masters C&O (C&S) 2022-23/Q3 Deep Learning/Sony/Sony/long/2*_00_0.1s.ARW')
+
 # If you have less CPU RAM you would like to use fewer images for training.
 if dry_run:
     train_files = train_files[:dry_run_trainpictures]
-    gt_files = gt_files[:dry_run_trainpictures]
-    print('train_files', train_files)
-    print('gt_files', gt_files)
+    gt_files = gt_files[:dry_run_trainpictures] #this is two pictures while
+    # print('train_files', train_files)
+    # print('gt_files', gt_files)
     opt['iterations'] = dry_run_iterations
-
     
 dataloader_train = DataLoader(load_data(train_files, gt_files, train_amplification_file, 2 , gt_amp=True,training=True), batch_size=opt['batch_size'], shuffle=True, num_workers=0, pin_memory=True)
 # gt_amp=True means use GT information for amplification. Make it false for automatic estimation.
 # 20 here means that after every 20 images have been loaded to CPU RAM print statistics.
 
-test_files = glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/short/*.ARW') 
-gt_files +=glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/long/*.ARW')
+# test_files = glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/short/*.ARW')
+# gt_files +=glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/long/*.ARW')
+test_files = glob.glob('C:/Users/cgome/Documents/TU Delft/1ºMsc Masters C&O (C&S) 2022-23/Q3 Deep Learning/Sony/Sony/short/1*_00_0.1s.ARW')
+# print(test_files)
+for x in test_files:
+    gt_files +=glob.glob('C:/Users/cgome/Documents/TU Delft/1ºMsc Masters C&O (C&S) 2022-23/Q3 Deep Learning/Sony/Sony/long/*'+x[-17:-12]+'*.ARW')
+# print(gt_files)
+
 if dry_run:
     test_files = test_files[:dry_run_testpictures]
-    print(test_files)
-    gt_files = gt_files[:dry_run_testpictures]
-    print(gt_files)   
-    
+    #print(test_files)
+    gt_files = gt_files[:dry_run_trainpictures+dry_run_testpictures] #this is wrong,
+    # print(gt_files)
+
+print("TRAIN/VALIDATION FILES: ", train_files)
+print("TEST FILES: ", test_files)
+print("GT FILES: ", gt_files)
+
 dataloader_test = DataLoader(load_data(test_files,gt_files,test_amplification_file,2,gt_amp=True,training=False), batch_size=1, shuffle=False, num_workers=0, pin_memory=True)
 
 for i,img in enumerate(dataloader_train):    
