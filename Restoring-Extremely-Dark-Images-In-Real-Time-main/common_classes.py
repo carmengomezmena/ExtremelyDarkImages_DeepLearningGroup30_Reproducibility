@@ -130,13 +130,15 @@ def plotbins(numbins: int):     ## This is ours
     plt.figure()
     plt.title('Bins & Weights')
     for b in bins:
-            plt.axvline(x=b, color = 'red', ls = '--', zorder=1)
+            lines = plt.axvline(x=b, color = 'red', ls = '--', zorder=1)
     x = []
     for i in range(len(bins)-1):
         x.append((bins[i+1]+bins[i])/2)
-    plt.scatter(x, weights, color = 'green', label = 'weights', zorder=2)
+    plt.scatter(x, weights, color = 'green', label = 'Weights', zorder=2)
     plt.legend()
     plt.show()
+
+plotbins(5)
 plotbins(127)
     
 ################ DATASET CLASS
