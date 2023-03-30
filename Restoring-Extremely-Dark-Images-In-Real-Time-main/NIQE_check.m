@@ -7,13 +7,17 @@
 
 path        = 'demo_restored_images/';
 files       = dir([path '*.jpg']);
-niqe_array  = zeros(length(files));
-niqe_array  = niqe_array(1,:);
-
-i           = 1;
-for file = files'
-    address         = [path file.name];
-    I               = imread(address);
-    niqe_array(i)   = niqe(I);
-    i               = i + 1;
+if (isempty(files))
+    disp('There are no images in demo_restored_images/. Please run the demo.py file first.')
+else
+    niqe_array  = zeros(length(files));
+    niqe_array  = niqe_array(1,:);
+    
+    i           = 1;
+    for file = files'
+        address         = [path file.name];
+        I               = imread(address);
+        niqe_array(i)   = niqe(I);
+        i               = i + 1;
+    end
 end
