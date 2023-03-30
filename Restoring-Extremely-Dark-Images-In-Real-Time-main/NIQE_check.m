@@ -5,18 +5,15 @@
 
 %% NIQE
 
-files       = dir('demo_restored_images/*.jpg');
+path        = 'demo_restored_images/';
+files       = dir([path '*.jpg']);
 niqe_array  = zeros(length(files));
 niqe_array  = niqe_array(1,:);
+
 i           = 1;
-
-I               = imread('demo_restored_images/img_num_0_m_5.0.jpg');
-niqe(I);
-
 for file = files'
-    I               = imread(file.name);
-    %disp(I);
+    address         = [path file.name];
+    I               = imread(address);
     niqe_array(i)   = niqe(I);
     i               = i + 1;
 end
-
