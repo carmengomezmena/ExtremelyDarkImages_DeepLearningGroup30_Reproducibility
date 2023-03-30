@@ -172,4 +172,3 @@ def run_test(model, dataloader_test, save_images):
                 imageio.imwrite(os.path.join(save_images,'img_num_{}_m_{}.jpg'.format(image_num,amp)), pred) #save prediction
     return
 
-        
