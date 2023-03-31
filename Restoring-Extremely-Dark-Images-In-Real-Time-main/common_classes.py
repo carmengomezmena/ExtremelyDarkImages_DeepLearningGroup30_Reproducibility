@@ -130,13 +130,15 @@ def plotbins(numbins: int):     ## This is ours
     plt.figure()
     plt.title('Bins & Weights')
     for b in bins:
-            plt.axvline(x=b, color = 'red', ls = '--', zorder=1)
+            lines = plt.axvline(x=b, color = 'red', ls = '--', zorder=1)
     x = []
     for i in range(len(bins)-1):
         x.append((bins[i+1]+bins[i])/2)
-    plt.scatter(x, weights, color = 'green', label = 'weights', zorder=2)
+    plt.scatter(x, weights, color = 'green', label = 'Weights', zorder=2)
     plt.legend()
     plt.show()
+
+plotbins(5)
 plotbins(127)
     
 ################ DATASET CLASS
@@ -164,10 +166,9 @@ def run_test(model, dataloader_test, save_images):
         model.eval() #evaluate model
         for image_num, low in enumerate(dataloader_test):
             low = low.to(next(model.parameters()).device) #save model parameters in 'low'
-            for amp in [1.0,5.0,8.0]: #three amplification factors -> three predictions per image
+            for amp in [1.0,2.5,5.0]: #three amplification factors -> three predictions per image
                 pred = model(amp*low) #prediction = run model for amplification*parameter
                 pred = (np.clip(pred[0].detach().cpu().numpy().transpose(1,2,0),0,1)*255).astype(np.uint8) #modify prediction
                 imageio.imwrite(os.path.join(save_images,'img_num_{}_m_{}.jpg'.format(image_num,amp)), pred) #save prediction
     return
 
-        
