@@ -12,12 +12,12 @@ opt={'base_lr':1e-4} # Initial learning rate
 opt['reduce_lr_by'] = 0.1 # Reduce learning rate by 10 times
 opt['atWhichReduce'] = [500000] # Reduce learning rate at these iterations.
 opt['batch_size'] = 8
-opt['atWhichSave'] = [2,100002,150002,200002,250002,300002,350002,400002,450002,500002,550000, 600000,650002,700002,750000,800000,850002,900002,950000,1000000] # testing will be done at these iterations and corresponding model weights will be saved.
+opt['atWhichSave'] = [2, 5000, 10000] # testing will be done at these iterations and corresponding model weights will be saved.
 opt['iterations'] = 1000005 # The model will run for these many iterations.
 dry_run = True # If you wish to first test the entire workflow, for couple of iterations, make this TRUE
-dry_run_trainpictures = 2
-dry_run_testpictures  = 2
-dry_run_iterations = 25 # If dry run flag is set TRUE the code will terminate after these many iterations
+dry_run_trainpictures = 16
+dry_run_testpictures  = 16
+dry_run_iterations = 10 # If dry run flag is set TRUE the code will terminate after these many iterations
 
 metric_average_file = 'metric_average.txt' # Average metrics will be saved here. Please note these are only for supervison. We used MATLAB for final PSNR and SSIM evaluation.
 test_amplification_file = 'test_amplification.txt' # Intermediate details for the test images, such as estimated amplification will be saved here.
@@ -57,24 +57,32 @@ shutil.rmtree(save_csv_files, ignore_errors = True)
 os.makedirs(save_weights)
 os.makedirs(save_images)
 os.makedirs(save_csv_files)
+# Yaro's train files:
+train_files = glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/short/0*_00_0.1s.ARW')
+train_files += glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/short/2*_00_0.1s.ARW')
+print(train_files)
 
-# train_files = glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/short/*.ARW')
-# # print(train_files)
-# gt_files =glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/long/*.ARW')
-#gt_files =glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/long/*.ARW')
-
-
+""" # Carmen's train files:
 train_files = glob.glob('C:/Users/cgome/Documents/TU Delft/1ºMsc Masters C&O (C&S) 2022-23/Q3 Deep Learning/Sony/Sony/short/0*_00_0.1s.ARW')
 train_files += glob.glob('C:/Users/cgome/Documents/TU Delft/1ºMsc Masters C&O (C&S) 2022-23/Q3 Deep Learning/Sony/Sony/short/2*_00_0.1s.ARW')
+ """
 # print(train_files)
 # 0 -training
 # 1 - test
 # 2 - validation
+
 gt_files = []
+
+# Yaro's gt files:
+for x in train_files:
+    #print(x)
+    gt_files += glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/long/*'+x[-17:-12]+'*.ARW')
+print('gt_files:', gt_files)
+""" # Carmen's gt files:
 for x in train_files:
     #print(x)
     gt_files += glob.glob('C:/Users/cgome/Documents/TU Delft/1ºMsc Masters C&O (C&S) 2022-23/Q3 Deep Learning/Sony/Sony/long/*'+x[-17:-12]+'*.ARW')
-
+ """
 # gt_files =glob.glob('C:/Users/cgome/Documents/TU Delft/1ºMsc Masters C&O (C&S) 2022-23/Q3 Deep Learning/Sony/Sony/long/0*_00_0.1s.ARW')
 # gt_files += glob.glob('C:/Users/cgome/Documents/TU Delft/1ºMsc Masters C&O (C&S) 2022-23/Q3 Deep Learning/Sony/Sony/long/2*_00_0.1s.ARW')
 
@@ -90,13 +98,19 @@ dataloader_train = DataLoader(load_data(train_files, gt_files, train_amplificati
 # gt_amp=True means use GT information for amplification. Make it false for automatic estimation.
 # 20 here means that after every 20 images have been loaded to CPU RAM print statistics.
 
-# test_files = glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/short/*.ARW')
-# gt_files +=glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/long/*.ARW')
+# Yaro's test files:
+test_files = glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/short/1*_00_0.1s.ARW')
+""" # Carmen's test files:
 test_files = glob.glob('C:/Users/cgome/Documents/TU Delft/1ºMsc Masters C&O (C&S) 2022-23/Q3 Deep Learning/Sony/Sony/short/1*_00_0.1s.ARW')
-# print(test_files)
+ """
+# Yaro's gt files:
+for x in test_files:
+    gt_files +=glob.glob('E:/documents/School/Delft/Master/Deep Learning/Sony/Sony/long/*'+x[-17:-12]+'*.ARW')
+print('test_files', test_files)
+""" # Carmen's test files:
 for x in test_files:
     gt_files +=glob.glob('C:/Users/cgome/Documents/TU Delft/1ºMsc Masters C&O (C&S) 2022-23/Q3 Deep Learning/Sony/Sony/long/*'+x[-17:-12]+'*.ARW')
-# print(gt_files)
+ """
 
 if dry_run:
     test_files = test_files[:dry_run_testpictures]
@@ -115,13 +129,13 @@ for i,img in enumerate(dataloader_train):
     break
     
 ############ Training Begins
-
 device = torch.device("cuda")
 model = Net()
 print(model)
 print('\nTrainable parameters : {}\n'.format(sum(p.numel() for p in model.parameters() if p.requires_grad)))
 model = model.to(device)
 print('Device on cuda: {}'.format(next(model.parameters()).is_cuda))
+print("--- time used to load data = %s seconds ---" % (time.time() - start_time))
 
 iter_num = 0
 l1_loss = torch.nn.L1Loss()
@@ -179,4 +193,5 @@ while iter_num<opt['iterations']:
 
 np.savetxt(os.path.join(save_csv_files,'loss_curve.csv'),[p for p in zip(loss_iter_list,loss_list,iter_LR)],delimiter=',',fmt='%s')   
 
-print("--- runtime = %s seconds ---" % (time.time() - start_time))
+runtime = time.time() - start_time
+print("--- runtime =\n", runtime, 'seconds', '\n', runtime/3600, 'hours')
